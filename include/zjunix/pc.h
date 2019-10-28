@@ -1,5 +1,12 @@
 #ifndef _ZJUNIX_PC_H
 #define _ZJUNIX_PC_H
+#include <zjunix/list.h>
+// 进程状态
+#define  UNINIT    0
+#define  READY    1
+#define  RUNNING  2
+#define  WAITING  3
+#define  TERMINATED 4
 
 typedef struct {
     unsigned int epc;
@@ -16,12 +23,21 @@ typedef struct {
     unsigned int ra;
 } context;
 
+
+// 信号量结构体
+typedef struct {
+    int value;
+    int tail = -1;
+    int PList[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+} semaphore;
+
 typedef struct {
     context context;
-    int ASID;
+    int ASID; // PID
     unsigned int counter;
     char name[32];
     unsigned long start_time;
+    int state; // 进程状态
 } task_struct;
 
 typedef union {
@@ -39,5 +55,11 @@ void pc_kill_syscall(unsigned int status, unsigned int cause, context* pt_contex
 int pc_kill(int proc);
 task_struct* get_curr_pcb();
 int print_proc();
+
+// 信号量相关函数
+void pc_block();
+void pc_wakeup(int pid);
+void wait(semaphore S);
+void signal(semaphore S);
 
 #endif  // !_ZJUNIX_PC_H
