@@ -49,6 +49,7 @@ void init_pc() {
         pcb[i].ASID = -1;
     pcb[0].ASID = 0;
     pcb[0].counter = PROC_DEFAULT_TIMESLOTS;
+    pcb[0].state = UNINIT;
     kernel_strcpy(pcb[0].name, "init");
     curr_proc = 0;
     register_syscall(10, pc_kill_syscall);
@@ -127,4 +128,43 @@ int print_proc() {
             kernel_printf(" %x  %s\n", pcb[i].ASID, pcb[i].name);
     }
     return 0;
+}
+
+
+void pc_block()
+{
+    task_struct* curr_pcb = get_curr_pcb();
+    curr_pcb->state = WAITING;
+    return 0;
+}
+
+void pc_wakeup(int pid)
+{
+    for (i = 0; i < 8; i++) 
+        if (pcb[i].ASID == 0)
+            pcb[i].state = READY;
+}
+
+void waiting(semaphore S)
+{
+    task_struct* curr_pcb = get_curr_pcb();
+    S.value--;
+    if (S.value < 0){
+        S.PList[++S.tail] = curr_pcb->ASID;
+        pc_block();
+    }
+}
+
+void signal(semaphore S)
+{
+    S.value++;
+    if (S.value <= 0){
+        S
+    }
+    S.value++;
+    if (S.value <= 0){
+        int pid = S.PList[S.tail];
+        S.PList[S.tail--] = -1;
+        pc_wakeup(pid);
+    }
 }
